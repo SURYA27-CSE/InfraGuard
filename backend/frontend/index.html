@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>InfraGuard | Infrastructure Monitoring</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #0b1020;
+            color: #f4f7ff;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: auto;
+            padding: 25px 0 50px;
+        }
+
+        /* ================= HEADER ================= */
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .shield {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #17233d;
+            border: 1px solid #3b5685;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: .3px;
+        }
+
+        .brand p {
+            margin: 5px 0 0;
+            color: #8ea1c5;
+            font-size: 13px;
+        }
+
+        .system-info {
+            text-align: right;
+        }
+
+        .online {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 12px;
+            border-radius: 20px;
+            background: #14351f;
+            border: 1px solid #285b38;
+            color: #7ee787;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .online-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #7ee787;
+            box-shadow: 0 0 8px #7ee787;
+        }
+
+        .updated {
+            margin-top: 7px;
+            color: #7385a7;
+            font-size: 11px;
+        }
+
+        /* ================= GENERAL CARD ================= */
+
+        .card {
+            background: #1d2638;
+            border: 1px solid #34425d;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,.16);
+        }
+
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            margin: 0 0 13px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-subtitle {
+            color: #8192b3;
+            font-size: 11px;
+            margin-top: -7px;
+            margin-bottom: 13px;
+        }
+
+        /* ================= METRICS ================= */
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-title {
+            color: #9aabd0;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .metric-value {
+            font-size: 29px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .metric-status {
+            position: absolute;
+            right: 16px;
+            top: 17px;
+            font-size: 10px;
+            color: #7f91b2;
+        }
+
+        .progress {
+            width: 100%;
+            height: 7px;
+            background: #101625;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #72a5ff;
+            border-radius: 10px;
+            transition: width .5s ease;
+        }
+
+        /* ================= RISK ================= */
+
+        .risk-card {
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            gap: 25px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .risk-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #72a5ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: auto;
+            background: #182033;
+        }
+
+        .risk-number {
+            font-size: 31px;
+            font-weight: bold;
+        }
+
+        .risk-label {
+            color: #8294b6;
+            font-size: 9px;
+            margin-top: 2px;
+        }
+
+        .risk-level {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        .risk-description {
+            color: #92a2c0;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .risk-tags {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .tag {
+            padding: 5px 9px;
+            border-radius: 12px;
+            background: #151d30;
+            border: 1px solid #33415c;
+            color: #a6b7d6;
+            font-size: 10px;
+        }
+
+        /* ================= CHART ================= */
+
+        .chart-card {
+            margin-bottom: 16px;
+        }
+
+        .chart-container {
+            height: 210px;
+            position: relative;
+        }
+
+        /* ================= TWO COLUMN ================= */
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        /* ================= TABLE ================= */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        th {
+            text-align: left;
+            color: #8294b6;
+            padding: 8px 5px;
+            border-bottom: 1px solid #35425b;
+        }
+
+        td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #2c374d;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .status-description {
+            color: #8294b6;
+            font-size: 11px;
+        }
+
+        /* ================= ALERTS ================= */
+
+        .alert {
+            background: #241f16;
+            border-left: 4px solid #ffd166;
+            padding: 11px;
+            border-radius: 5px;
+            color: #ffd166;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .no-alert {
+            background: #14251a;
+            border-left: 4px solid #7ee787;
+            padding: 11px;
+            border-radius: 5px;
+            color: #7ee787;
+            font-size: 12px;
+        }
+
+        /* ================= ANALYSIS ================= */
+
+        .analysis-box {
+            padding: 12px;
+            background: #151c2d;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .cause {
+            border-left: 4px solid #ffb84d;
+        }
+
+        .prediction {
+            border-left: 4px solid #a18cff;
+        }
+
+        .recommendation {
+            border-left: 4px solid #72a5ff;
+        }
+
+        .remediation {
+            border-left: 4px solid #7ee787;
+        }
+
+        /* ================= HEALTH ================= */
+
+        .healthy {
+            color: #7ee787;
+            font-weight: bold;
+        }
+
+        .health-warning {
+            color: #ffd166;
+            font-weight: bold;
+        }
+
+        .health-high {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        /* ================= INCIDENT ================= */
+
+        .incident-warning {
+            color: #ffd166;
+            font-weight: bold;
+        }
+
+        .incident-critical {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .incident-resolved {
+            color: #7ee787;
+            font-weight: bold;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            text-align: center;
+            color: #5f7092;
+            font-size: 10px;
+            margin-top: 25px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media(max-width: 850px) {
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .risk-card {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .system-info {
+                text-align: left;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="header">
+
+        <div class="brand">
+
+            <div class="shield">
+                🛡️
+            </div>
+
+            <div>
+
+                <h1>
+                    InfraGuard
+                </h1>
+
+                <p>
+                    Intelligent Infrastructure Monitoring & Risk Management
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="system-info">
+
+            <div class="online">
+
+                <span class="online-dot"></span>
+
+                SYSTEM ONLINE
+
+            </div>
+
+            <div
+                class="updated"
+                id="lastUpdated">
+
+                Last updated: --
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= METRICS ================= -->
+
+    <div class="metrics">
+
+
+        <div class="card metric-card">
+
+            <div class="metric-title">
+                CPU Usage
+            </div>
+
+            <div class="metric-status">
+                PROCESSOR
+            </div>
+
+            <div class="metric-value">
+
+                <span id="cpu">
+                    --
+                </span>%
+
+            </div>
+
+            <div class="progress">
+
+                <div
+                    id="cpuBar"
+                    class="progress-bar">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card metric-card">
+
+            <div class="metric-title">
+                Memory Usage
+            </div>
+
+            <div class="metric-status">
+                RAM
+            </div>
+
+            <div class="metric-value">
+
+                <span id="memory">
+                    --
+                </span>%
+
+            </div>
+
+            <div class="progress">
+
+                <div
+                    id="memoryBar"
+                    class="progress-bar">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card metric-card">
+
+            <div class="metric-title">
+                Disk Usage
+            </div>
+
+            <div class="metric-status">
+                STORAGE
+            </div>
+
+            <div class="metric-value">
+
+                <span id="disk">
+                    --
+                </span>%
+
+            </div>
+
+            <div class="progress">
+
+                <div
+                    id="diskBar"
+                    class="progress-bar">
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ================= RISK ================= -->
+
+    <div class="card risk-card">
+
+        <div class="risk-circle">
+
+            <div
+                id="riskScore"
+                class="risk-number">
+
+                --
+
+            </div>
+
+            <div class="risk-label">
+                RISK SCORE
+            </div>
+
+        </div>
+
+
+        <div>
+
+            <div
+                id="riskLevel"
+                class="risk-level">
+
+                ANALYZING...
+
+            </div>
+
+            <div class="risk-description">
+
+                InfraGuard continuously evaluates CPU,
+                memory, disk utilization and active
+                incidents to calculate infrastructure risk.
+
+            </div>
+
+
+            <div class="risk-tags">
+
+                <div class="tag">
+                    ● CPU MONITORING
+                </div>
+
+                <div class="tag">
+                    ● MEMORY MONITORING
+                </div>
+
+                <div class="tag">
+                    ● DISK MONITORING
+                </div>
+
+                <div class="tag">
+                    ● INCIDENT DETECTION
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= CHARTS ================= -->
+
+    <div class="card chart-card">
+
+        <h2 class="section-title">
+            📈 CPU Usage History
+        </h2>
+
+        <div class="chart-container">
+
+            <canvas id="cpuChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div class="card chart-card">
+
+        <h2 class="section-title">
+            📈 Memory Usage History
+        </h2>
+
+        <div class="chart-container">
+
+            <canvas id="memoryChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div class="card chart-card">
+
+        <h2 class="section-title">
+            📈 Disk Usage History
+        </h2>
+
+        <div class="chart-container">
+
+            <canvas id="diskChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= PROCESSES ================= -->
+
+    <div class="two-column">
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                🔥 Top CPU Processes
+            </h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Process
+                        </th>
+
+                        <th>
+                            CPU %
+                        </th>
+
+                        <th>
+                            PID
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="cpuProcesses">
+
+                    <tr>
+                        <td colspan="3">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                🧠 Top Memory Processes
+            </h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Process
+                        </th>
+
+                        <th>
+                            Memory %
+                        </th>
+
+                        <th>
+                            PID
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="memoryProcesses">
+
+                    <tr>
+                        <td colspan="3">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ================= SYSTEM STATUS ================= -->
+
+    <div class="card section">
+
+        <div class="status-box">
+
+            <div>
+
+                <h2 class="section-title">
+                    🖥️ System Status
+                </h2>
+
+                <div class="status-description">
+                    Current overall infrastructure condition
+                </div>
+
+            </div>
+
+            <div
+                id="status"
+                class="status">
+
+                Checking...
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= ALERTS ================= -->
+
+    <div class="card section">
+
+        <h2 class="section-title">
+            ⚠️ Active Alerts
+        </h2>
+
+        <div id="alerts">
+            Checking...
+        </div>
+
+    </div>
+
+
+    <!-- ================= ANALYSIS ================= -->
+
+    <div class="two-column">
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                🔍 Root-Cause Analysis
+            </h2>
+
+            <div
+                id="rootCauses">
+
+                Analyzing...
+
+            </div>
+
+        </div>
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                📈 Predictive Analysis
+            </h2>
+
+            <div
+                id="predictions">
+
+                Analyzing...
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ================= RECOMMENDATIONS ================= -->
+
+    <div class="two-column">
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                💡 Intelligent Recommendations
+            </h2>
+
+            <div
+                id="recommendations">
+
+                Analyzing...
+
+            </div>
+
+        </div>
+
+
+        <div class="card section">
+
+            <h2 class="section-title">
+                🛠️ Remediation Actions
+            </h2>
+
+            <div
+                id="remediation">
+
+                Analyzing...
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ================= PROCESS HEALTH ================= -->
+
+    <div class="card section">
+
+        <h2 class="section-title">
+            ❤️ Process Health
+        </h2>
+
+        <div class="section-subtitle">
+            Health classification of the most resource-intensive processes
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Process
+                    </th>
+
+                    <th>
+                        CPU %
+                    </th>
+
+                    <th>
+                        Memory %
+                    </th>
+
+                    <th>
+                        Health
+                    </th>
+
+                    <th>
+                        PID
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="processHealth">
+
+                <tr>
+
+                    <td colspan="5">
+                        Loading...
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ================= INCIDENT HISTORY ================= -->
+
+    <div class="card section">
+
+        <h2 class="section-title">
+            🚨 Incident History
+        </h2>
+
+        <div class="section-subtitle">
+            Previously detected infrastructure events
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Time
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Incident
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="incidentHistory">
+
+                <tr>
+
+                    <td colspan="3">
+                        No incidents recorded.
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <div class="footer">
+
+        InfraGuard • Intelligent Infrastructure Monitoring System
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+const API_URL =
+    "http://127.0.0.1:8000/metrics";
+
+
+let cpuChart;
+let memoryChart;
+let diskChart;
+
+
+let labels = [];
+let cpuData = [];
+let memoryData = [];
+let diskData = [];
+
+
+/* ================= CHART OPTIONS ================= */
+
+const chartOptions = {
+
+    responsive: true,
+
+    maintainAspectRatio: false,
+
+    animation: false,
+
+    scales: {
+
+        y: {
+
+            min: 0,
+
+            max: 100,
+
+            ticks: {
+                color: "#7283a3"
+            },
+
+            grid: {
+                color: "#303a50"
+            }
+
+        },
+
+        x: {
+
+            ticks: {
+                color: "#7283a3",
+                maxTicksLimit: 6
+            },
+
+            grid: {
+                color: "#303a50"
+            }
+
+        }
+
+    },
+
+    plugins: {
+
+        legend: {
+
+            labels: {
+                color: "#91a2c1"
+            }
+
+        }
+
+    }
+
+};
+
+
+/* ================= CREATE CHARTS ================= */
+
+function createCharts() {
+
+
+    cpuChart = new Chart(
+
+        document.getElementById("cpuChart"),
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [{
+
+                    label: "CPU Usage %",
+
+                    data: cpuData,
+
+                    borderWidth: 2,
+
+                    tension: .3,
+
+                    fill: false
+
+                }]
+
+            },
+
+            options: chartOptions
+
+        }
+
+    );
+
+
+    memoryChart = new Chart(
+
+        document.getElementById("memoryChart"),
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [{
+
+                    label: "Memory Usage %",
+
+                    data: memoryData,
+
+                    borderWidth: 2,
+
+                    tension: .3,
+
+                    fill: false
+
+                }]
+
+            },
+
+            options: chartOptions
+
+        }
+
+    );
+
+
+    diskChart = new Chart(
+
+        document.getElementById("diskChart"),
+
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [{
+
+                    label: "Disk Usage %",
+
+                    data: diskData,
+
+                    borderWidth: 2,
+
+                    tension: .3,
+
+                    fill: false
+
+                }]
+
+            },
+
+            options: chartOptions
+
+        }
+
+    );
+
+}
+
+
+/* ================= PROCESS TABLE ================= */
+
+function displayProcesses(
+    processes,
+    elementId,
+    valueKey
+) {
+
+    const table =
+        document.getElementById(elementId);
+
+    table.innerHTML = "";
+
+
+    if (
+        !processes ||
+        processes.length === 0
+    ) {
+
+        table.innerHTML =
+            "<tr><td colspan='3'>No process data</td></tr>";
+
+        return;
+
+    }
+
+
+    processes.forEach(process => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+
+            <td>${process.name}</td>
+
+            <td>${process[valueKey]}%</td>
+
+            <td>${process.pid}</td>
+
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* ================= ALERTS ================= */
+
+function displayAlerts(alerts) {
+
+    const box =
+        document.getElementById("alerts");
+
+    box.innerHTML = "";
+
+
+    if (
+        !alerts ||
+        alerts.length === 0
+    ) {
+
+        box.innerHTML = `
+            <div class="no-alert">
+                ✓ No active infrastructure alerts
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    alerts.forEach(alert => {
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "alert";
+
+        item.textContent =
+            "⚠ " + alert;
+
+        box.appendChild(item);
+
+    });
+
+}
+
+
+/* ================= LIST SECTIONS ================= */
+
+function displayList(
+    items,
+    elementId,
+    className
+) {
+
+    const box =
+        document.getElementById(elementId);
+
+    box.innerHTML = "";
+
+
+    if (
+        !items ||
+        items.length === 0
+    ) {
+
+        box.innerHTML =
+            "No information available.";
+
+        return;
+
+    }
+
+
+    items.forEach(item => {
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "analysis-box " + className;
+
+        div.textContent =
+            item;
+
+        box.appendChild(div);
+
+    });
+
+}
+
+
+/* ================= PROCESS HEALTH ================= */
+
+function displayProcessHealth(processes) {
+
+    const table =
+        document.getElementById("processHealth");
+
+    table.innerHTML = "";
+
+
+    if (
+        !processes ||
+        processes.length === 0
+    ) {
+
+        table.innerHTML =
+            "<tr><td colspan='5'>No process health data</td></tr>";
+
+        return;
+
+    }
+
+
+    processes.forEach(process => {
+
+        const row =
+            document.createElement("tr");
+
+
+        let healthClass =
+            "healthy";
+
+
+        if (
+            process.status === "WARNING"
+        ) {
+
+            healthClass =
+                "health-warning";
+
+        }
+
+
+        if (
+            process.status === "HIGH"
+        ) {
+
+            healthClass =
+                "health-high";
+
+        }
+
+
+        row.innerHTML = `
+
+            <td>${process.name}</td>
+
+            <td>${process.cpu_percent}%</td>
+
+            <td>${process.memory_percent}%</td>
+
+            <td class="${healthClass}">
+                ${process.status}
+            </td>
+
+            <td>${process.pid}</td>
+
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* ================= INCIDENT HISTORY ================= */
+
+function displayIncidents(incidents) {
+
+    const table =
+        document.getElementById("incidentHistory");
+
+    table.innerHTML = "";
+
+
+    if (
+        !incidents ||
+        incidents.length === 0
+    ) {
+
+        table.innerHTML =
+            "<tr><td colspan='3'>✓ No incidents recorded</td></tr>";
+
+        return;
+
+    }
+
+
+    incidents
+        .slice()
+        .reverse()
+        .forEach(incident => {
+
+            const row =
+                document.createElement("tr");
+
+
+            let statusClass =
+                "incident-warning";
+
+
+            if (
+                incident.status === "CRITICAL"
+            ) {
+
+                statusClass =
+                    "incident-critical";
+
+            }
+
+
+            if (
+                incident.status === "RESOLVED"
+            ) {
+
+                statusClass =
+                    "incident-resolved";
+
+            }
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${incident.time}
+                </td>
+
+                <td class="${statusClass}">
+                    ${incident.status}
+                </td>
+
+                <td>
+                    ${incident.message}
+                </td>
+
+            `;
+
+
+            table.appendChild(row);
+
+        });
+
+}
+
+
+/* ================= PROGRESS COLOR ================= */
+
+function updateProgress(
+    elementId,
+    value
+) {
+
+    const bar =
+        document.getElementById(elementId);
+
+
+    bar.style.width =
+        Math.min(value, 100) + "%";
+
+
+    if (value >= 90) {
+
+        bar.style.background =
+            "#ff6b6b";
+
+    }
+
+    else if (value >= 80) {
+
+        bar.style.background =
+            "#ffd166";
+
+    }
+
+    else {
+
+        bar.style.background =
+            "#72a5ff";
+
+    }
+
+}
+
+
+/* ================= LOAD DATA ================= */
+
+async function loadMetrics() {
+
+    try {
+
+        const response =
+            await fetch(API_URL);
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Backend error"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /* METRICS */
+
+        document.getElementById("cpu")
+            .textContent =
+            data.cpu_percent.toFixed(1);
+
+
+        document.getElementById("memory")
+            .textContent =
+            data.memory_percent.toFixed(1);
+
+
+        document.getElementById("disk")
+            .textContent =
+            data.disk_percent.toFixed(1);
+
+
+        updateProgress(
+            "cpuBar",
+            data.cpu_percent
+        );
+
+
+        updateProgress(
+            "memoryBar",
+            data.memory_percent
+        );
+
+
+        updateProgress(
+            "diskBar",
+            data.disk_percent
+        );
+
+
+        /* LAST UPDATED */
+
+        document.getElementById(
+            "lastUpdated"
+        ).textContent =
+            "Last updated: " +
+            new Date().toLocaleTimeString();
+
+
+        /* STATUS */
+
+        const status =
+            document.getElementById("status");
+
+
+        status.textContent =
+            data.status;
+
+
+        if (
+            data.status === "NORMAL"
+        ) {
+
+            status.style.color =
+                "#7ee787";
+
+        }
+
+        else if (
+            data.status === "WARNING"
+        ) {
+
+            status.style.color =
+                "#ffd166";
+
+        }
+
+        else {
+
+            status.style.color =
+                "#ff6b6b";
+
+        }
+
+
+        /* RISK SCORE */
+
+        document.getElementById(
+            "riskScore"
+        ).textContent =
+            data.risk_score;
+
+
+        const riskLevel =
+            document.getElementById(
+                "riskLevel"
+            );
+
+
+        riskLevel.textContent =
+            data.risk_level + " RISK";
+
+
+        if (
+            data.risk_level === "LOW"
+        ) {
+
+            riskLevel.style.color =
+                "#7ee787";
+
+        }
+
+        else if (
+            data.risk_level === "MODERATE"
+        ) {
+
+            riskLevel.style.color =
+                "#ffd166";
+
+        }
+
+        else if (
+            data.risk_level === "HIGH"
+        ) {
+
+            riskLevel.style.color =
+                "#ff9f43";
+
+        }
+
+        else {
+
+            riskLevel.style.color =
+                "#ff6b6b";
+
+        }
+
+
+        /* ALERTS */
+
+        displayAlerts(
+            data.alerts
+        );
+
+
+        /* PROCESSES */
+
+        displayProcesses(
+            data.top_cpu_processes,
+            "cpuProcesses",
+            "cpu_percent"
+        );
+
+
+        displayProcesses(
+            data.top_memory_processes,
+            "memoryProcesses",
+            "memory_percent"
+        );
+
+
+        /* ANALYSIS */
+
+        displayList(
+            data.root_causes,
+            "rootCauses",
+            "cause"
+        );
+
+
+        displayList(
+            data.predictions,
+            "predictions",
+            "prediction"
+        );
+
+
+        displayList(
+            data.recommendations,
+            "recommendations",
+            "recommendation"
+        );
+
+
+        displayList(
+            data.remediation,
+            "remediation",
+            "remediation"
+        );
+
+
+        /* HEALTH */
+
+        displayProcessHealth(
+            data.process_health
+        );
+
+
+        /* INCIDENTS */
+
+        displayIncidents(
+            data.incident_history
+        );
+
+
+        /* CHARTS */
+
+        labels.push(
+            new Date().toLocaleTimeString()
+        );
+
+
+        cpuData.push(
+            data.cpu_percent
+        );
+
+
+        memoryData.push(
+            data.memory_percent
+        );
+
+
+        diskData.push(
+            data.disk_percent
+        );
+
+
+        if (labels.length > 12) {
+
+            labels.shift();
+
+            cpuData.shift();
+
+            memoryData.shift();
+
+            diskData.shift();
+
+        }
+
+
+        cpuChart.update();
+        memoryChart.update();
+        diskChart.update();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+
+        const status =
+            document.getElementById("status");
+
+
+        status.textContent =
+            "BACKEND OFFLINE";
+
+
+        status.style.color =
+            "#ff6b6b";
+
+
+        document.getElementById(
+            "lastUpdated"
+        ).textContent =
+            "Unable to connect to backend";
+
+    }
+
+}
+
+
+/* ================= START ================= */
+
+createCharts();
+
+loadMetrics();
+
+
+/* Refresh every 5 seconds */
+
+setInterval(
+    loadMetrics,
+    5000
+);
+
+</script>
+
+</body>
+
+</html>
